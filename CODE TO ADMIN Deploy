@@ -1,0 +1,28 @@
+step4. 
+from flask import request, redirect, session
+
+ADMIN_USER = "admin"
+ADMIN_PASS = "admin123"
+###
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "POST":
+        if request.form["username"] == ADMIN_USER and request.form["password"] == ADMIN_PASS:
+            session["admin"] = True
+            return redirect("/dashboard")
+    return "<form method='post'>Admin Login</form>"
+
+2.########################
+@app.route("/dashboard")
+def dashboard():
+    if not session.get("admin"):
+        return redirect("/admin")
+
+    conn = sqlite3.connect("attendance.db")
+    df = pd.read_sql("SELECT * FROM attendance", conn)
+    conn.close()
+ return df.to_html()
+##############################################
+@app.route("/download")
+def download():
+    return send_file("attendance.db", as_attachment=True)
