@@ -1,0 +1,51 @@
+“The system is deployed on a cloud server running Flask, accessible via a public URL, enabling real-time QR-based attendance monitoring.”
+
+1.   import sqlite3
+
+conn = sqlite3.connect("attendance.db")
+cur = conn.cursor()
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS attendance (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id TEXT,
+    name TEXT,
+    date TEXT,
+    time_in TEXT,
+    time_out TEXT,
+    status TEXT
+)
+""")
+
+conn.commit()
+conn.close()
+
+2.  def mark_attendance(student_id, name):
+    conn = sqlite3.connect("attendance.db")
+    cur = conn.cursor()
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    time_now = datetime.now().strftime("%H:%M:%S")
+
+    cur.execute("""
+    SELECT * FROM attendance WHERE student_id=? AND date=?
+    """, (student_id, today))
+
+    record = cur.fetchone()
+
+    if record is None:
+        cur.execute("""
+        INSERT INTO attendance 
+        (student_id, name, date, time_in, status)
+        VALUES (?, ?, ?, ?, 'Present')
+        """, (student_id, name, today, time_now))
+    else:
+        cur.execute("""
+        UPDATE attendance SET time_out=?
+        WHERE student_id=? AND date=?
+        """, (time_now, student_id, today))
+
+    conn.commit()
+    conn.close()
+https://attendance-system.onrender.com/mark?id=STU001
+
